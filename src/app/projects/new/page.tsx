@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { Building2, Save, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -14,12 +15,47 @@ export default function NewProject() {
     startDate: "",
     endDate: "",
     budget: "",
+    id_linea: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [researchLines, setResearchLines] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchLines = async () => {
+      const { data } = await supabase.from('lineas_investigacion').select('*');
+      if (data) setResearchLines(data);
+    };
+    fetchLines();
+  }, []);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert("¡Borrador de proyecto guardado con éxito!");
-    router.push("/dashboard");
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          status: 'PENDING_APPROVAL',
+          members: [] // Agregamos estructura básica para que no falle el mapeo
+        }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Error al guardar");
+      }
+
+      alert("¡Proyecto guardado con éxito y enviado a revisión!");
+      router.push("/dashboard");
+    } catch (error: any) {
+      alert(`Hubo un error al guardar: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -53,6 +89,21 @@ export default function NewProject() {
                 placeholder="Ej: Análisis Cuántico en Redes..."
                 className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-sm"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1">Línea de Investigación</label>
+              <select
+                required
+                value={formData.id_linea}
+                onChange={(e) => setFormData({...formData, id_linea: e.target.value})}
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-sm bg-white"
+              >
+                <option value="">Selecciona una línea...</option>
+                {researchLines.map(line => (
+                  <option key={line.id} value={line.id}>{line.nombre}</option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -117,8 +168,8 @@ export default function NewProject() {
               <button type="button" onClick={() => router.push('/dashboard')} className="px-6 py-3 text-sm font-bold text-slate-600 bg-slate-100 border border-transparent rounded-xl hover:bg-slate-200 transition-colors">
                 Cancelar
               </button>
-              <button type="submit" className="px-6 py-3 text-sm font-bold text-white bg-gradient-to-r from-brand-600 to-brand-500 rounded-xl hover:from-brand-700 hover:to-brand-600 transition-all shadow-md shadow-brand-500/30 flex items-center gap-2">
-                <Save size={18} /> Guardar Borrador
+              <button type="submit" disabled={isSubmitting} className="px-6 py-3 text-sm font-bold text-white bg-gradient-to-r from-brand-600 to-brand-500 rounded-xl hover:from-brand-700 hover:to-brand-600 transition-all shadow-md shadow-brand-500/30 flex items-center gap-2 disabled:opacity-70">
+                <Save size={18} /> {isSubmitting ? "Guardando..." : "Guardar Borrador"}
               </button>
             </div>
           </form>

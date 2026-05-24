@@ -1,31 +1,73 @@
 "use client";
 
-import { mockProjects, mockPublications, mockUsers } from "@/lib/mockData";
+import { supabase } from "@/lib/supabase";
 import { Check, X, ShieldCheck, Building2, BookOpen, AlertCircle } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function AdminDashboard() {
-  // Simulación de estados para la UI
-  const [projects, setProjects] = useState(mockProjects);
-  const [publications, setPublications] = useState(mockPublications);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [publications, setPublications] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const { data: pData } = await supabase.from('proyectos').select('*');
+      if (pData) {
+        setProjects((pData as any[]).map(p => ({
+          id: p.id,
+          title: p.nombre,
+          summary: p.descripcion,
+          status: p.estado || 'PENDING_APPROVAL'
+        })));
+      }
+      
+      const { data: pubData } = await supabase.from('publicaciones').select('*');
+      if (pubData) {
+        setPublications((pubData as any[]).map(p => ({ 
+          id: p.id,
+          title: p.titulo,
+          authors: typeof p.autores === 'string' ? p.autores.split(',') : (p.autores || []),
+          status: p.estado || 'SUBMITTED'
+        })));
+      }
+    };
+    loadData();
+  }, []);
 
   const pendingProjects = projects.filter(p => p.status === "PENDING_APPROVAL");
   const submittedPublications = publications.filter(p => p.status === "SUBMITTED");
 
-  const handleApproveProject = (id: string) => {
-    setProjects(projects.map(p => p.id === id ? { ...p, status: "ACTIVE" } : p));
-    alert("Proyecto aprobado y activado.");
+  const handleApproveProject = async (id: string) => {
+    // @ts-ignore
+    const { error } = await supabase.from('proyectos').update({ estado: 'ACTIVE' }).eq('id', id);
+    if (!error) {
+      setProjects(projects.map(p => p.id === id ? { ...p, status: "ACTIVE" } : p));
+      alert("Proyecto aprobado y activado correctamente en base de datos.");
+    } else {
+      alert("Error al aprobar proyecto: " + error.message);
+    }
   };
 
-  const handleRejectProject = (id: string) => {
-    setProjects(projects.map(p => p.id === id ? { ...p, status: "REJECTED" } : p));
-    alert("Proyecto rechazado.");
+  const handleRejectProject = async (id: string) => {
+    // @ts-ignore
+    const { error } = await supabase.from('proyectos').update({ estado: 'REJECTED' }).eq('id', id);
+    if (!error) {
+      setProjects(projects.map(p => p.id === id ? { ...p, status: "REJECTED" } : p));
+      alert("Proyecto rechazado correctamente.");
+    } else {
+      alert("Error al rechazar proyecto: " + error.message);
+    }
   };
 
-  const handleUpdatePublication = (id: string, newStatus: "ACCEPTED" | "REJECTED") => {
-    setPublications(publications.map(p => p.id === id ? { ...p, status: newStatus } : p));
-    alert(`Publicación ${newStatus === "ACCEPTED" ? "Aceptada" : "Rechazada"}.`);
+  const handleUpdatePublication = async (id: string, newStatus: "ACCEPTED" | "REJECTED") => {
+    // @ts-ignore
+    const { error } = await supabase.from('publicaciones').update({ estado: newStatus }).eq('id', id);
+    if (!error) {
+      setPublications(publications.map(p => p.id === id ? { ...p, status: newStatus } : p));
+      alert(`Publicación ${newStatus === "ACCEPTED" ? "Aceptada" : "Rechazada"} correctamente.`);
+    } else {
+      alert("Error al actualizar la publicación: " + error.message);
+    }
   };
 
   return (

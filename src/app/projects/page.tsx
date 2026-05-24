@@ -1,18 +1,38 @@
 "use client";
 
-import { mockProjects } from "@/lib/mockData";
 import { Project } from "@/types";
 import { Search, Filter, Building2, Calendar, CheckCircle2, Clock } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 export default function ProjectsList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [projects, setProjects] = useState<any[]>([]);
 
-  const filteredProjects = mockProjects.filter(project => {
-    const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          project.summary.toLowerCase().includes(searchTerm.toLowerCase());
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const { data } = await supabase.from('proyectos').select('*');
+      if (data) {
+        setProjects((data as any[]).map(p => ({
+          id: p.id,
+          title: p.nombre,
+          summary: p.descripcion,
+          status: p.estado || 'PENDING_APPROVAL',
+          startDate: p.fecha_inicio || new Date().toISOString(),
+          endDate: p.fecha_fin || new Date().toISOString()
+        })));
+      }
+    };
+    fetchProjects();
+  }, []);
+
+  const filteredProjects = projects.filter(project => {
+    const title = project.title || "";
+    const summary = project.summary || "";
+    const matchesSearch = title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          summary.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "ALL" || project.status === statusFilter;
     
     return matchesSearch && matchesStatus;

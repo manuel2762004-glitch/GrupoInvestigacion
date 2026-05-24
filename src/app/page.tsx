@@ -1,7 +1,8 @@
-import { mockProjects, mockPublications, mockResearchLines } from "@/lib/mockData";
 import { ArrowRight, BookOpen, Lightbulb, Users, Search, Microscope, Award, Building2 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const client = supabase as any;
@@ -30,34 +31,32 @@ export default async function Home() {
     .from("lineas_investigacion")
     .select("*", { count: "exact", head: true });
 
-  // Map database structures to UI structures, or fallback to mockData if DB is empty
-  const recentProjects = dbProjects && dbProjects.length > 0
+  // Map database structures to UI structures, strictly using real DB data
+  const recentProjects = dbProjects
     ? dbProjects.map((p: any) => ({
-        id: p.id,
-        title: p.nombre,
-        summary: p.descripcion || "",
-        fundingEntity: "Plan Nacional de I+D",
-        status: "ACTIVE" as const,
-        startDate: new Date().toISOString(),
-        endDate: new Date().toISOString(),
-      }))
-    : mockProjects.slice(0, 3);
+      id: p.id,
+      title: p.nombre,
+      summary: p.descripcion || "",
+      fundingEntity: p.entidad_financiadora || "N/A",
+      status: p.estado || "PENDING_APPROVAL",
+      startDate: p.fecha_inicio || new Date().toISOString(),
+      endDate: p.fecha_fin || new Date().toISOString(),
+    }))
+    : [];
 
-  const recentPublications = dbPublications && dbPublications.length > 0
+  const recentPublications = dbPublications
     ? dbPublications.map((p: any) => ({
-        id: p.id,
-        title: p.titulo,
-        authors: p.autores ? p.autores.split(", ") : [],
-        doi: p.doi || undefined,
-        status: "PUBLISHED" as const,
-      }))
-    : mockPublications.slice(0, 3);
+      id: p.id,
+      title: p.titulo,
+      authors: p.autores ? p.autores.split(", ") : [],
+      doi: p.doi || undefined,
+      status: p.estado || "SUBMITTED",
+    }))
+    : [];
 
-  const totalProjects = projectsCount !== null && projectsCount > 0 ? projectsCount : mockProjects.length;
-  const totalPublications = publicationsCount !== null && publicationsCount > 0 ? publicationsCount : mockPublications.length;
-  const totalLines = linesCount !== null && linesCount > 0 ? linesCount : mockResearchLines.length;
-
-
+  const totalProjects = projectsCount || 0;
+  const totalPublications = publicationsCount || 0;
+  const totalLines = linesCount || 0;
   return (
     <div className="flex flex-col gap-12 pb-12">
       {/* Hero Section */}
@@ -82,7 +81,7 @@ export default async function Home() {
             </Link>
           </div>
         </div>
-        
+
         {/* Decorative elements */}
         <div className="absolute top-1/4 left-10 w-72 h-72 bg-accent-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
         <div className="absolute top-1/3 right-10 w-72 h-72 bg-brand-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
@@ -96,28 +95,28 @@ export default async function Home() {
             <div className="bg-brand-100 p-3 rounded-full text-brand-600 mb-3">
               <Microscope size={28} />
             </div>
-            <h3 className="text-3xl font-bold text-slate-800">{totalProjects}</h3>
+            <h3 className="text-3xl font-bold text-slate-0">{totalProjects}</h3>
             <p className="text-sm text-slate-500 font-medium">Proyectos Activos</p>
           </div>
           <div className="flex flex-col items-center p-4">
             <div className="bg-accent-100 p-3 rounded-full text-accent-600 mb-3">
               <BookOpen size={28} />
             </div>
-            <h3 className="text-3xl font-bold text-slate-800">{totalPublications}</h3>
+            <h3 className="text-3xl font-bold text-slate-0">{totalPublications}</h3>
             <p className="text-sm text-slate-500 font-medium">Publicaciones</p>
           </div>
           <div className="flex flex-col items-center p-4">
             <div className="bg-emerald-100 p-3 rounded-full text-emerald-600 mb-3">
               <Award size={28} />
             </div>
-            <h3 className="text-3xl font-bold text-slate-800">{totalLines}</h3>
+            <h3 className="text-3xl font-bold text-slate-0">{totalLines}</h3>
             <p className="text-sm text-slate-500 font-medium">Líneas de Invest.</p>
           </div>
           <div className="flex flex-col items-center p-4">
             <div className="bg-purple-100 p-3 rounded-full text-purple-600 mb-3">
               <Users size={28} />
             </div>
-            <h3 className="text-3xl font-bold text-slate-800">12+</h3>
+            <h3 className="text-3xl font-bold text-slate-00">12</h3>
             <p className="text-sm text-slate-500 font-medium">Investigadores</p>
           </div>
         </div>
@@ -128,25 +127,24 @@ export default async function Home() {
         <section>
           <div className="flex justify-between items-end mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-slate-800">Proyectos Destacados</h2>
+              <h2 className="text-2xl font-bold text-slate-0">Proyectos Destacados</h2>
               <p className="text-slate-500">Investigaciones actualmente en curso</p>
             </div>
             <Link href="/projects" className="text-brand-600 text-sm font-medium hover:underline flex items-center gap-1">
               Ver todos <ArrowRight size={14} />
             </Link>
           </div>
-               <div className="grid gap-4">
+          <div className="grid gap-4">
             {recentProjects.map((project: any) => (
               <div key={project.id} className="bg-white rounded-xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all hover:border-brand-200 group">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-semibold text-lg text-slate-800 group-hover:text-brand-600 transition-colors">
                     <Link href={`/projects/${project.id}`}>{project.title}</Link>
                   </h3>
-                  <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                    project.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' :
+                  <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${project.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' :
                     project.status === 'PENDING_APPROVAL' ? 'bg-amber-100 text-amber-700' :
-                    'bg-slate-100 text-slate-700'
-                  }`}>
+                      'bg-slate-100 text-slate-700'
+                    }`}>
                     {project.status === 'ACTIVE' ? 'Activo' : project.status === 'PENDING_APPROVAL' ? 'Pendiente' : project.status}
                   </span>
                 </div>
@@ -167,14 +165,14 @@ export default async function Home() {
         <section>
           <div className="flex justify-between items-end mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-slate-800">Últimas Publicaciones</h2>
+              <h2 className="text-2xl font-bold text-slate-0">Últimas Publicaciones</h2>
               <p className="text-slate-500">Artículos y contribuciones científicas</p>
             </div>
             <Link href="/publications" className="text-brand-600 text-sm font-medium hover:underline flex items-center gap-1">
               Ver todos <ArrowRight size={14} />
             </Link>
           </div>
-          
+
           <div className="grid gap-4">
             {recentPublications.map((pub: any) => (
               <div key={pub.id} className="bg-white rounded-xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all hover:border-brand-200">
@@ -185,14 +183,13 @@ export default async function Home() {
                   {pub.authors.join(", ")}
                 </p>
                 <div className="flex items-center justify-between text-xs mt-auto pt-3 border-t border-slate-50">
-                  <span className={`px-2 py-1 rounded font-medium ${
-                    pub.status === 'PUBLISHED' ? 'bg-blue-50 text-blue-700' :
+                  <span className={`px-2 py-1 rounded font-medium ${pub.status === 'PUBLISHED' ? 'bg-blue-50 text-blue-700' :
                     pub.status === 'SUBMITTED' ? 'bg-purple-50 text-purple-700' :
-                    'bg-slate-100 text-slate-700'
-                  }`}>
+                      'bg-slate-100 text-slate-700'
+                    }`}>
                     {pub.status === 'PUBLISHED' ? 'Publicado' : pub.status === 'SUBMITTED' ? 'Enviado' : pub.status}
                   </span>
-                  
+
                   {pub.doi && (
                     <a href={`https://doi.org/${pub.doi}`} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-brand-600 flex items-center gap-1">
                       DOI <ArrowRight size={12} />

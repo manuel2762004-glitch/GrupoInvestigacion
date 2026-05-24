@@ -1,16 +1,34 @@
 "use client";
 
-import { mockPublications } from "@/lib/mockData";
 import { BookOpen, ExternalLink, Filter, Search } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 export default function PublicationsList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [publications, setPublications] = useState<any[]>([]);
 
-  const filteredPublications = mockPublications.filter(pub => {
+  useEffect(() => {
+    const fetchPubs = async () => {
+      const { data } = await supabase.from('publicaciones').select('*');
+      if (data) {
+        setPublications((data as any[]).map(p => ({
+          id: p.id,
+          title: p.titulo,
+          authors: typeof p.autores === 'string' ? p.autores.split(',') : (p.autores || []),
+          doi: p.doi,
+          status: p.estado || 'SUBMITTED',
+          submitDate: p.created_at
+        })));
+      }
+    };
+    fetchPubs();
+  }, []);
+
+  const filteredPublications = publications.filter(pub => {
     const matchesSearch = pub.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          pub.authors.some(a => a.toLowerCase().includes(searchTerm.toLowerCase()));
+                          pub.authors.some((a: string) => a.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === "ALL" || pub.status === statusFilter;
     return matchesSearch && matchesStatus;
   });

@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpen, Save, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { mockProjects } from "@/lib/mockData";
+import { useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 export default function NewPublication() {
   const router = useRouter();
@@ -16,10 +17,43 @@ export default function NewPublication() {
     status: "DRAFT",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [projects, setProjects] = useState<any[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const { data } = await supabase.from('proyectos').select('*');
+      if (data) setProjects(data);
+    };
+    fetchProjects();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert("¡Publicación guardada con éxito!");
-    router.push("/dashboard");
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/publications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          authors: formData.authors,
+          id_proyecto: formData.projectId
+        }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Error al guardar");
+      }
+
+      alert("¡Publicación guardada con éxito!");
+      router.push("/dashboard");
+    } catch (error: any) {
+      alert(`Hubo un error al guardar: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -101,8 +135,8 @@ export default function NewPublication() {
                 className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors shadow-sm bg-white"
               >
                 <option value="">Ningún proyecto asociado</option>
-                {mockProjects.map(p => (
-                  <option key={p.id} value={p.id}>{p.title}</option>
+                {projects.map(p => (
+                  <option key={p.id} value={p.id}>{p.nombre}</option>
                 ))}
               </select>
             </div>
@@ -111,8 +145,8 @@ export default function NewPublication() {
               <button type="button" onClick={() => router.push('/dashboard')} className="px-6 py-3 text-sm font-bold text-slate-600 bg-slate-100 border border-transparent rounded-xl hover:bg-slate-200 transition-colors">
                 Cancelar
               </button>
-              <button type="submit" className="px-6 py-3 text-sm font-bold text-white bg-gradient-to-r from-accent-600 to-accent-500 rounded-xl hover:from-accent-700 hover:to-accent-600 transition-all shadow-md shadow-accent-500/30 flex items-center gap-2">
-                <Save size={18} /> Guardar Publicación
+              <button type="submit" disabled={isSubmitting} className="px-6 py-3 text-sm font-bold text-white bg-gradient-to-r from-accent-600 to-accent-500 rounded-xl hover:from-accent-700 hover:to-accent-600 transition-all shadow-md shadow-accent-500/30 flex items-center gap-2 disabled:opacity-70">
+                <Save size={18} /> {isSubmitting ? "Guardando..." : "Guardar Publicación"}
               </button>
             </div>
           </form>

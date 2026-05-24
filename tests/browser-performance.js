@@ -30,21 +30,21 @@ export default async function () {
   const page = await context.newPage();
 
   try {
-    console.log('Navegando a la aplicación TodoMVC...');
+    console.log('Navegando a la aplicación del Portal Científico...');
     // 1. Navegar a la página bajo prueba
-    await page.goto('https://demo.playwright.dev/todomvc/');
+    await page.goto('https://grupo-investigacion-punh.vercel.app/');
 
-    // 2. Esperar a que el input de tareas esté visible (garantiza carga de componentes principales)
-    const inputTodo = page.locator('input.new-todo');
-    await inputTodo.waitFor({ state: 'visible', timeout: 15000 });
+    // 2. Esperar a que el título H1 principal esté visible (garantiza carga de componentes principales)
+    const titleHeader = page.locator('h1');
+    await titleHeader.waitFor({ state: 'visible', timeout: 15000 });
 
     console.log('Página cargada. Realizando validaciones...');
     
     // Validar visibilidad del elemento clave
-    const isInputVisible = await inputTodo.isVisible();
+    const isTitleVisible = await titleHeader.isVisible();
     check(page, {
-      'El campo input "new-todo" esta visible': () => isInputVisible === true,
-      'El titulo de la pagina es correcto': () => page.title().then(t => t.includes('Todo')),
+      'El título H1 está visible': () => isTitleVisible === true,
+      'El título de la pestaña incluye Portal o Investigación': () => page.title().then(t => t.includes('Portal') || t.includes('Investiga')),
     });
 
     // 3. Tomar una captura de pantalla de verificación

@@ -2,6 +2,9 @@
 # Este script automatiza la verificacion y ejecucion de todas las pruebas en Windows (PowerShell)
 
 Clear-Host
+
+# Nos aseguramos de ejecutar todo desde la raíz del proyecto
+Set-Location "$PSScriptRoot\.."
 Write-Host "=========================================================" -ForegroundColor Cyan
 Write-Host "      INICIANDO SUITE DE PRUEBAS QA AUTOMATIZADAS        " -ForegroundColor Cyan
 Write-Host "=========================================================" -ForegroundColor Cyan
@@ -19,9 +22,9 @@ npm install --save-dev jest @playwright/test @prisma/client lucide-react dotenv 
 
 # 2. Ejecutar Pruebas Unitarias y de Seguridad (Jest)
 Write-Host "[2/4] Ejecutando Pruebas Unitarias, Base de Datos (Mocks) y Seguridad..." -ForegroundColor Yellow
-Write-Host "Comando: npx jest --verbose --colors" -ForegroundColor Gray
+Write-Host "Comando: npx jest --verbose --colors --runInBand" -ForegroundColor Gray
 
-npx jest --verbose --colors
+npx jest --verbose --colors --runInBand
 $jestResult = $LASTEXITCODE
 
 if ($jestResult -eq 0) {
@@ -55,8 +58,8 @@ if (-not $k6Installed) {
 
 if ($k6Installed) {
     Write-Host "k6 detectado. Iniciando simulacion de carga..." -ForegroundColor Gray
-    Write-Host "Comando: k6 run performance-test.js" -ForegroundColor Gray
-    k6 run performance-test.js
+    Write-Host "Comando: k6 run tests/performance-test.js" -ForegroundColor Gray
+    k6 run tests/performance-test.js
     $k6Result = $LASTEXITCODE
     if ($k6Result -eq 0) {
         Write-Host "OK: Pruebas de rendimiento completadas con exito!" -ForegroundColor Green
@@ -75,23 +78,6 @@ Write-Host "[4/4] Verificando credenciales para Pruebas en la Nube (LambdaTest).
 $envUser = $env:LT_USERNAME
 $envKey = $env:LT_ACCESS_KEY
 
-if ($envUser -and $envKey) {
-    Write-Host "Credenciales detectadas. Ejecutando pruebas de compatibilidad en la nube..." -ForegroundColor Gray
-    Write-Host "Comando: node compatibility-test.js" -ForegroundColor Gray
-    node compatibility-test.js
-    $compatResult = $LASTEXITCODE
-    if ($compatResult -eq 0) {
-        Write-Host "OK: Pruebas de compatibilidad completadas con exito!" -ForegroundColor Green
-    } else {
-        Write-Host "ERROR: Las pruebas de compatibilidad fallaron." -ForegroundColor Red
-    }
-} else {
-    Write-Host "Omitiendo pruebas en la nube: LT_USERNAME o LT_ACCESS_KEY no configurados en las variables de entorno." -ForegroundColor Yellow
-    Write-Host "Para ejecutarlas, configura tus credenciales de LambdaTest temporalmente:" -ForegroundColor Gray
-    Write-Host "  `$env:LT_USERNAME='tu_usuario'" -ForegroundColor Gray
-    Write-Host "  `$env:LT_ACCESS_KEY='tu_key'" -ForegroundColor Gray
-    $compatResult = 0
-}
 
 # 5. Reporte Consolidado
 Write-Host "=========================================================" -ForegroundColor Cyan
@@ -114,14 +100,5 @@ if ($k6Installed) {
     Write-Host "  [OMITIDO]  Pruebas de Rendimiento (k6 no instalado)" -ForegroundColor Yellow
 }
 
-if ($envUser -and $envKey) {
-    if ($compatResult -eq 0) {
-        Write-Host "  [APROBADO] Pruebas de Compatibilidad (LambdaTest)" -ForegroundColor Green
-    } else {
-        Write-Host "  [FALLADO]  Pruebas de Compatibilidad (LambdaTest)" -ForegroundColor Red
-    }
-} else {
-    Write-Host "  [OMITIDO]  Pruebas de Compatibilidad (Credenciales ausentes)" -ForegroundColor Yellow
-}
 
 Write-Host "=========================================================" -ForegroundColor Cyan

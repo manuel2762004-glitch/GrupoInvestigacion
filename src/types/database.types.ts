@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -14,7 +14,93 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      lineas_investigacion: {
+        Row: {
+          id: string
+          nombre: string
+          descripcion: string | null
+        }
+        Insert: {
+          id?: string
+          nombre: string
+          descripcion?: string | null
+        }
+        Update: {
+          id?: string
+          nombre?: string
+          descripcion?: string | null
+        }
+      }
+      proyectos: {
+        Row: {
+          id: string
+          id_linea: string | null
+          nombre: string
+          descripcion: string | null
+          entidad_financiadora: string | null
+          fecha_inicio: string | null
+          fecha_fin: string | null
+          presupuesto: number | null
+          estado: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          id_linea?: string | null
+          nombre: string
+          descripcion?: string | null
+          entidad_financiadora?: string | null
+          fecha_inicio?: string | null
+          fecha_fin?: string | null
+          presupuesto?: number | null
+          estado?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          id_linea?: string | null
+          nombre?: string
+          descripcion?: string | null
+          entidad_financiadora?: string | null
+          fecha_inicio?: string | null
+          fecha_fin?: string | null
+          presupuesto?: number | null
+          estado?: string
+          created_at?: string
+        }
+      }
+      publicaciones: {
+        Row: {
+          id: string
+          id_proyecto: string | null
+          id_medio: string | null
+          doi: string | null
+          titulo: string
+          autores: string | null
+          estado: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          id_proyecto?: string | null
+          id_medio?: string | null
+          doi?: string | null
+          titulo: string
+          autores?: string | null
+          estado?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          id_proyecto?: string | null
+          id_medio?: string | null
+          doi?: string | null
+          titulo?: string
+          autores?: string | null
+          estado?: string
+          created_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
