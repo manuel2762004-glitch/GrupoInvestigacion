@@ -38,7 +38,9 @@ export default function NewPublication() {
         body: JSON.stringify({
           title: formData.title,
           authors: formData.authors,
-          id_proyecto: formData.projectId
+          id_proyecto: formData.projectId,
+          doi: formData.doi || null,
+          status: 'DRAFT'
         }),
       });
 
@@ -101,31 +103,16 @@ export default function NewPublication() {
               />
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">DOI (Opcional)</label>
-                <input
-                  type="text"
-                  value={formData.doi}
-                  onChange={(e) => setFormData({...formData, doi: e.target.value})}
-                  placeholder="Ej: 10.1016/j.artmed..."
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors shadow-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Estado</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({...formData, status: e.target.value})}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors shadow-sm bg-white"
-                >
-                  <option value="DRAFT">Borrador</option>
-                  <option value="SUBMITTED">Enviado a revisión</option>
-                  <option value="ACCEPTED">Aceptado</option>
-                  <option value="PUBLISHED">Publicado</option>
-                </select>
-              </div>
-            </div>
+             <div>
+               <label className="block text-sm font-bold text-slate-700 mb-1">DOI (Opcional)</label>
+               <input
+                 type="text"
+                 value={formData.doi}
+                 onChange={(e) => setFormData({...formData, doi: e.target.value})}
+                 placeholder="Ej: 10.1016/j.artmed..."
+                 className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors shadow-sm"
+               />
+             </div>
 
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">Vincular a Proyecto (Opcional)</label>
