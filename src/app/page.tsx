@@ -132,7 +132,7 @@ export default async function Home() {
             <div className="bg-blue-50 p-4 rounded-2xl text-blue-600 mb-4 shadow-inner">
               <Users size={32} aria-hidden="true" />
             </div>
-            <h3 className="text-4xl font-black text-slate-800 tracking-tight">12</h3>
+            <h3 className="text-4xl font-black text-slate-800 tracking-tight">5</h3>
             <p className="text-sm text-slate-500 font-semibold mt-1">Científicos Activos</p>
           </div>
         </div>
@@ -383,8 +383,8 @@ export default async function Home() {
                     <Link href={`/projects/${project.id}`}>{project.title}</Link>
                   </h3>
                   <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${project.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
-                      project.status === 'PENDING_APPROVAL' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
-                        'bg-slate-100 text-slate-700 border border-slate-200'
+                    project.status === 'PENDING_APPROVAL' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                      'bg-slate-100 text-slate-700 border border-slate-200'
                     }`}>
                     {project.status === 'ACTIVE' ? 'Activo' : project.status === 'PENDING_APPROVAL' ? 'Pendiente' : project.status}
                   </span>
@@ -427,8 +427,8 @@ export default async function Home() {
 
                 <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider pt-3 border-t border-slate-50">
                   <span className={`px-2.5 py-0.5 rounded-full ${pub.status === 'PUBLISHED' ? 'bg-blue-50 text-blue-700' :
-                      pub.status === 'ACCEPTED' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
-                        'bg-purple-50 text-purple-700 border border-purple-100'
+                    pub.status === 'ACCEPTED' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                      'bg-purple-50 text-purple-700 border border-purple-100'
                     }`}>
                     {pub.status === 'PUBLISHED' ? 'Publicado' : pub.status === 'ACCEPTED' ? 'Aceptado' : 'En Revisión'}
                   </span>
