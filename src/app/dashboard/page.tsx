@@ -14,9 +14,9 @@ import { useEffect, useState } from "react";
 const scientificVenues = [
   { id: "nature", name: "Nature Journal", abbrev: "Nature", type: "REVISTA", difficulty: 9.0, impactFactor: 64.8, acceptanceRate: "5%" },
   { id: "science", name: "Science Magazine", abbrev: "Science", type: "REVISTA", difficulty: 8.8, impactFactor: 56.9, acceptanceRate: "6%" },
-  { id: "cvpr", name: "IEEE/CVF CVPR (Computer Vision)", abbrev: "CVPR", type: "CONGRESO", difficulty: 7.5, impactFactor: 15.6, acceptanceRate: "20%" },
+  { id: "cvpr", name: "IEEE/CVF CVPR (Computer Vision)", abbrev: "CVPR", type: "CONFERENCIA", difficulty: 7.5, impactFactor: 15.6, acceptanceRate: "20%" },
   { id: "tse", name: "IEEE Transactions on Software Engineering", abbrev: "TSE", type: "REVISTA", difficulty: 7.0, impactFactor: 9.5, acceptanceRate: "15%" },
-  { id: "chi", name: "ACM CHI (Human-Computer Interaction)", abbrev: "CHI", type: "CONGRESO", difficulty: 6.0, impactFactor: 8.4, acceptanceRate: "25%" },
+  { id: "chi", name: "ACM CHI (Human-Computer Interaction)", abbrev: "CHI", type: "CONFERENCIA", difficulty: 6.0, impactFactor: 8.4, acceptanceRate: "25%" },
   { id: "jair", name: "Journal of Artificial Intelligence Research", abbrev: "JAIR", type: "REVISTA", difficulty: 5.0, impactFactor: 5.2, acceptanceRate: "30%" }
 ];
 
@@ -34,6 +34,8 @@ export default function Dashboard() {
   const [simulationStep, setSimulationStep] = useState<number>(0); // 0: Config/Idle, 1: Animación, 2: Dictamen Final
   const [loadingText, setLoadingText] = useState<string>("");
   const [reviewResult, setReviewResult] = useState<any | null>(null);
+  const [destinationEmail, setDestinationEmail] = useState<string>("");
+  const [customType, setCustomType] = useState<string>("REVISTA");
 
   const loadData = async () => {
     try {
@@ -85,7 +87,7 @@ export default function Dashboard() {
     const venue = scientificVenues.find(v => v.id === selectedVenue)!;
 
     // Fase 1: Envío (0-1s)
-    setLoadingText("Enviando manuscrito científico a la secretaría del comité editorial...");
+    setLoadingText(destinationEmail ? `Enviando manuscrito científico a ${destinationEmail}...` : "Enviando manuscrito científico a la secretaría del comité editorial...");
     
     await new Promise(r => setTimeout(r, 1000));
     // Fase 2: Asignación (1-2s)
@@ -392,8 +394,35 @@ export default function Dashboard() {
                     <p className="text-brand-600 text-xs font-medium mt-1.5">{selectedPub.authors.join(", ")}</p>
                   </div>
 
+                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/50">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Envío por Correo Electrónico (Opcional)</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">¿A qué correo quieres enviarlo?</label>
+                        <input 
+                          type="email"
+                          value={destinationEmail}
+                          onChange={(e) => setDestinationEmail(e.target.value)}
+                          placeholder="ej: editor@nature.com"
+                          className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">Si es destino personalizado, ¿es Revista o Conferencia?</label>
+                        <select 
+                          value={customType}
+                          onChange={(e) => setCustomType(e.target.value)}
+                          className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 bg-white outline-none text-sm"
+                        >
+                          <option value="REVISTA">Revista Científica</option>
+                          <option value="CONFERENCIA">Conferencia</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Selecciona Revista o Congreso Destino</label>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Selecciona Revista o Conferencia Destino (Predefinido)</label>
                     <div className="grid gap-3 max-h-60 overflow-y-auto pr-1">
                       {scientificVenues.map(v => (
                         <div 

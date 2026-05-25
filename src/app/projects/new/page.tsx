@@ -3,11 +3,14 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
-import { Building2, Save, ArrowLeft } from "lucide-react";
+import { Building2, Save, ArrowLeft, Users } from "lucide-react";
 import Link from "next/link";
+import { mockUsers } from "@/lib/mockData";
 
 export default function NewProject() {
   const router = useRouter();
+  const currentUser = mockUsers[1]; // Simulating logged-in user
+
   const [formData, setFormData] = useState({
     title: "",
     summary: "",
@@ -19,6 +22,7 @@ export default function NewProject() {
   });
 
   const [researchLines, setResearchLines] = useState<any[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchLines = async () => {
@@ -30,17 +34,30 @@ export default function NewProject() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const toggleMember = (id: string) => {
+    if (selectedMembers.includes(id)) {
+      setSelectedMembers(selectedMembers.filter(mId => mId !== id));
+    } else {
+      setSelectedMembers([...selectedMembers, id]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      const members = [
+        { userId: currentUser.id, role: "INVESTIGADOR_PRINCIPAL" },
+        ...selectedMembers.map(id => ({ userId: id, role: "EQUIPO_INVESTIGACION" }))
+      ];
+
       const response = await fetch('/api/projects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
           status: 'PENDING_APPROVAL',
-          members: [] // Agregamos estructura básica para que no falle el mapeo
+          members
         }),
       });
 
@@ -162,6 +179,51 @@ export default function NewProject() {
                 placeholder="Ej: 150000"
                 className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-sm"
               />
+            </div>
+
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+              <div className="flex items-center gap-2 mb-4">
+                <Users className="text-brand-600" size={20} />
+                <h3 className="font-bold text-slate-800">Equipo de Investigación</h3>
+              </div>
+              <p className="text-xs text-slate-500 mb-4">Selecciona los investigadores que participarán en este proyecto. Tú eres asignado automáticamente como Investigador Principal.</p>
+              
+              <div className="space-y-3">
+                {/* Current user (Investigador Principal) */}
+                <div className="flex items-center justify-between p-3 bg-white border border-brand-200 rounded-xl shadow-sm ring-1 ring-brand-500/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-xs">
+                      {currentUser.firstName[0]}{currentUser.lastName[0]}
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm text-slate-800">{currentUser.firstName} {currentUser.lastName} <span className="text-xs font-normal text-slate-500">(Tú)</span></p>
+                      <p className="text-xs text-brand-600 font-semibold">Investigador Principal</p>
+                    </div>
+                  </div>
+                  <input type="checkbox" checked disabled className="w-4 h-4 text-brand-600 rounded bg-slate-100 border-slate-300 cursor-not-allowed" />
+                </div>
+                
+                {/* Other users */}
+                {mockUsers.filter(u => u.id !== currentUser.id).map(user => (
+                  <label key={user.id} className={`flex items-center justify-between p-3 bg-white border rounded-xl shadow-sm cursor-pointer transition-all ${selectedMembers.includes(user.id) ? 'border-brand-500 ring-1 ring-brand-500' : 'border-slate-200 hover:border-brand-300'}`}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold flex items-center justify-center text-xs">
+                        {user.firstName[0]}{user.lastName[0]}
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm text-slate-800">{user.firstName} {user.lastName}</p>
+                        <p className="text-xs text-slate-500">{user.institution}</p>
+                      </div>
+                    </div>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedMembers.includes(user.id)}
+                      onChange={() => toggleMember(user.id)}
+                      className="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500 cursor-pointer" 
+                    />
+                  </label>
+                ))}
+              </div>
             </div>
 
             <div className="pt-6 border-t border-slate-100 flex justify-end gap-3">

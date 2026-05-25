@@ -75,7 +75,7 @@ export default function NewPublication() {
               </div>
               <h1 className="text-2xl font-bold">Añadir Publicación</h1>
             </div>
-            <p className="text-accent-50 opacity-90 text-sm">Registra un nuevo artículo científico o contribución a congreso.</p>
+            <p className="text-accent-50 opacity-90 text-sm">Registra un nuevo artículo científico o contribución a conferencia.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="p-8 space-y-6">
